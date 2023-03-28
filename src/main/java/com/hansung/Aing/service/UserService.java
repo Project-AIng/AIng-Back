@@ -4,6 +4,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.hansung.Aing.model.User;
@@ -14,6 +15,7 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository;
+    private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     public void signUp(User user) throws Exception {
         // 이름 유효성 검사
@@ -39,6 +41,7 @@ public class UserService {
             throw new Exception("이미 사용중인 이메일입니다.");
         }
 
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
     }
 
@@ -73,16 +76,20 @@ public class UserService {
     }
 
     public User login(User user) throws Exception {
-        User existingUser = userRepository.findByEmail(user.getEmail());
+        User existingUser = userRepository.findByEmail(user.getEmail())
+                .orElseThrow(() -> new Exception("일치하는 사용자 정보가 없습니다."));
 
-        if (existingUser == null) {
-            throw new Exception("일치하는 사용자 정보가 없습니다.");
-        }
-
-        if (!existingUser.getPassword().equals(user.getPassword())) {
+        // Verify the password
+        if (!passwordEncoder.matches(user.getPassword(), existingUser.getPassword())) {
             throw new Exception("비밀번호가 일치하지 않습니다.");
         }
 
         return existingUser;
     }
+
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+    }
 }
+

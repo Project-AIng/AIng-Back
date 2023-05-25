@@ -17,10 +17,11 @@ app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
 
 # 환경 변수 설정 (다운로드한 JSON 키 파일의 경로를 지정)
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "C:/mslee/capstone/jsonkey/civil-orb-383914-4db936f7a15d.json"
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "제가 드린 파일의 경로를 쓰시면 됩니다 예-> C:/mslee/capstone/jsonkey/civil-orb-383914-4db936f7a15d.json"
 
-openai.api_key = "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"
+openai.api_key = "gpt api key를 넣으세요"
 
+#주의 주의 주의 root=mysql id csedbadmin=mysql password
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:csedbadmin@localhost/test'
 db = SQLAlchemy(app)
 

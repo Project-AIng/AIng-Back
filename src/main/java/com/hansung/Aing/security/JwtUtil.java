@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.function.Function;
 
@@ -15,12 +16,18 @@ import java.util.function.Function;
 public class JwtUtil {
 
     private SecretKey key;
+    @Value("${jwt.secret}")
+    private String secretKey;
 
     @PostConstruct
     public void init() {
+        this.key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
+    }
+    /*@PostConstruct
+    public void init() {
         // 수정된 부분: 키 크기를 256비트 이상으로 증가시키기 위해 Keys.secretKeyFor() 메소드를 사용합니다.
         key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-    }
+    }*/
 
     @Value("${jwt.expiration}")
     private Long expiration;

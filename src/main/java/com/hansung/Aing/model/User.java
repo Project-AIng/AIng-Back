@@ -6,11 +6,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -33,8 +30,37 @@ public class User implements UserDetails {
     private String password;
 
     @Column(nullable = false)
-    private String role = "ROLE_USER"; // 기본값을 설정합니다.
+    private double count = 0;
+    @Column
+    private double gra_score;
 
+    @Column
+    private double cla_score;
+
+    @Column
+    private double coh_score;
+
+    @Column
+    private double voc_score;
+
+    @Column
+    private double str_score;
+
+    /*@Column(length = 5000)  // 긴 텍스트를 위한 길이 지정
+    private String chat_text;*/
+
+    @Column
+    private String reco_sub1;
+
+    @Column
+    private String reco_sub2;
+
+    @Column
+    private String reco_sub3;
+
+
+    @Column(nullable = false)
+    private String role = "ROLE_USER"; // 기본값을 설정합니다.
 
     private String getRole() {
         return role;

@@ -61,6 +61,7 @@ def answer():
     token = request.json.get('token')
     user_email = get_email_from_token(token)
     user = User.query.filter_by(email=user_email).first()
+    total_score = TotalScore.query.first()
 
     if not user:
         return jsonify({'error': 'User not found'}), 404
@@ -68,10 +69,16 @@ def answer():
     # 유저 채팅할때마다 count+1(평균을 구하기 위함)
     if user:
         user.count += 1
+        if total_score:
+            total_score.count += 1
+        else:
+            total_score = TotalScore(gra_score=0, cla_score=0, coh_score=0, voc_score=0, str_score=0, count=1)
+            db.session.add(total_score)
     else:
         user.count = user.count
 
     db.session.add(user)
+    db.session.add(total_score)
     db.session.commit()
     ############################
     
@@ -107,6 +114,12 @@ def answer():
         user.coh_score += float(scores[2])
         user.voc_score += float(scores[3])
         user.str_score += float(scores[4])
+
+        total_score.gra_score += float(scores[0])
+        total_score.cla_score += float(scores[1])
+        total_score.coh_score += float(scores[2])
+        total_score.voc_score += float(scores[3])
+        total_score.str_score += float(scores[4])
         db.session.commit() 
     ########################################
     print(result)
@@ -196,6 +209,19 @@ class User(db.Model):
     reco_sub2 = db.Column(db.String(255))
     reco_sub3 = db.Column(db.String(255))
     role = db.Column(db.String(255), nullable=False, default="ROLE_USER")
+
+#db total_score table -> 전체 유저의 평균을 위한 테이블
+class TotalScore(db.Model):
+    __tablename__ = 'total_score'
+
+    id = db.Column(db.BigInteger, primary_key=True)
+    gra_score = db.Column(db.Float)
+    cla_score = db.Column(db.Float)
+    coh_score = db.Column(db.Float)
+    voc_score = db.Column(db.Float)
+    str_score = db.Column(db.Float)
+    count = db.Column(db.Integer, default=0)
+
 
 
 if __name__ == '__main__':

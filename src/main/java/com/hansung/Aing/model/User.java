@@ -30,21 +30,21 @@ public class User implements UserDetails {
     private String password;
 
     @Column(nullable = false)
-    private double count = 0;
+    private Integer count = 0;
     @Column
-    private double gra_score;
+    private float gra_score;
 
     @Column
-    private double cla_score;
+    private float cla_score;
 
     @Column
-    private double coh_score;
+    private float coh_score;
 
     @Column
-    private double voc_score;
+    private float voc_score;
 
     @Column
-    private double str_score;
+    private float str_score;
 
     /*@Column(length = 5000)  // 긴 텍스트를 위한 길이 지정
     private String chat_text;*/

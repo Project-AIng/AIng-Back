@@ -12,6 +12,12 @@ import jwt
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import re
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from matplotlib.figure import Figure
+import numpy as np
+import io
+import base64
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
@@ -222,6 +228,63 @@ class TotalScore(db.Model):
     str_score = db.Column(db.Float)
     count = db.Column(db.Integer, default=0)
 
+#score 비교 분석
+@app.route('/analyze', methods=['POST'])
+def plot_scores():
+    token = request.json.get('token')
+    user_email = get_email_from_token(token)
+    user = User.query.filter_by(email=user_email).first()
+    total_score = TotalScore.query.first()
+
+    if not user or not total_score:
+        return jsonify({'error': 'User or total score not found'}), 404
+
+    # 로그인 한 유저 점수 계산
+    user_scores = np.array([
+        user.gra_score / user.count,
+        user.cla_score / user.count,
+        user.coh_score / user.count,
+        user.voc_score / user.count,
+        user.str_score / user.count
+    ])
+
+    # 사용자 평균 점수 계산
+    total_scores = np.array([
+        total_score.gra_score / total_score.count,
+        total_score.cla_score / total_score.count,
+        total_score.coh_score / total_score.count,
+        total_score.voc_score / total_score.count,
+        total_score.str_score / total_score.count
+    ])
+
+    labels = np.array(['Grammar', 'Clarity', 'Coherence', 'Vocabulary', 'Structure'])
+
+    # Compute angle for each axis
+    angles = np.linspace(0, 2 * np.pi, len(labels), endpoint=False).tolist()
+
+    # Create plot
+    fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
+    ax.fill(angles, user_scores, color='red', alpha=0.25, label='You')
+    ax.fill(angles, total_scores, color='blue', alpha=0.25, label='Average')
+    ax.set_yticklabels([])
+    ax.set_thetagrids(np.degrees(angles), labels)
+    ax.set_ylim(0, 100)  # Set the limit to 100
+    ax.legend(loc='upper right')
+
+    # Add scores to the plot
+    for i, label in enumerate(labels):
+        ax.text(angles[i], user_scores[i], f'{user_scores[i]:.2f}', ha='center', va='bottom')
+        ax.text(angles[i], total_scores[i], f'{total_scores[i]:.2f}', ha='center', va='bottom')
+
+    # Convert plot to PNG image
+    png_image = io.BytesIO()
+    FigureCanvas(fig).print_png(png_image)
+
+    # Encode PNG image to base64 string
+    png_image_b64_string = "data:image/png;base64,"
+    png_image_b64_string += base64.b64encode(png_image.getvalue()).decode('utf8')
+
+    return jsonify({'image': png_image_b64_string})
 
 
 if __name__ == '__main__':
